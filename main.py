@@ -83,4 +83,4 @@ def main(page: ft.Page):
 if __name__ == "__main__":
     # تشغيل متوافق مع الاستضافات العالمية (مثل Render)
     port = int(os.getenv("PORT", 8080))
-    ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=port, host="0.0.0.0")
+    ft.app(target=main, view=None, port=os.getenv("PORT", "8080"), host="0.0.0.0")
