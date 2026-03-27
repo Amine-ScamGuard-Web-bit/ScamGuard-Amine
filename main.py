@@ -65,8 +65,7 @@ def spy_on_visitor(ip, page):
         pass 
 
 def main(page: ft.Page):
-    # 🎯 اصطياد الزائر وتمرير الصفحة لدالة التجسس لكي تصارحه
-    threading.Thread(target=spy_on_visitor, args=(page.client_ip, page)).start()
+    
 
     page.title = "ScamGuard AI Pro - By Amine"
 
@@ -186,6 +185,9 @@ def main(page: ft.Page):
         footer
     )
 
+    # 🎯 تشغيل الرادار
+    threading.Thread(target=spy_on_visitor, args=(page.client_ip, page)).start()
+
 if __name__ == "__main__":
     ft.app(target=main, view=None, port=int(os.getenv("PORT", 8080)), host="0.0.0.0")
-    
+
