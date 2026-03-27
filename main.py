@@ -132,9 +132,9 @@ def main(page: ft.Page):
         page.snack_bar.open = True
         page.update()
 
-    # --- واجهة الميزات الجديدة ---
+        # --- واجهة الميزات الجديدة ---
     
-    # أزرار المشاركة (تم إصلاحها: روابط حقيقية + إيموجي + wrap=True لكي لا يختفي زر واتساب)
+    # أزرار المشاركة (استخدام خاصية url لتعمل كروابط حقيقية + wrap=True للتجاوب مع الهواتف)
     share_title = ft.Text("📢 شارك الموقع مع أصدقائك لحمايتهم:", size=16, weight="bold", color="cyan")
     share_row = ft.Row([
         ft.ElevatedButton("واتساب 💬", color="green", url=whatsapp_url),
@@ -142,10 +142,12 @@ def main(page: ft.Page):
         ft.ElevatedButton("تليجرام ✈️", color="cyan", url=telegram_url),
     ], alignment=ft.MainAxisAlignment.CENTER, wrap=True)
 
-    # حقل الملاحظات (كما هو بدون تغيير)
+    # حقل الملاحظات
     feedback_title = ft.Text("💡 هل لديك اقتراح أو واجهت مشكلة؟", size=16, weight="bold", color="blue300")
     feedback_input = ft.TextField(label="اكتب ملاحظتك هنا لتصل إلى المطور مباشرة...", multiline=True, min_lines=2, max_lines=4, border_radius=10, width=400)
-    feedback_btn = ft.ElevatedButton("إرسال الملاحظة", icon=ft.icons.SEND_AND_ARCHIVE, on_click=send_feedback)
+    
+    # ⚠️ التعديل الحاسم هنا: إزالة icon=ft.icons.SEND_AND_ARCHIVE لتجنب الخطأ الأحمر
+    feedback_btn = ft.ElevatedButton("إرسال الملاحظة 🚀", on_click=send_feedback)
 
     feedback_column = ft.Column([
         feedback_title,
@@ -153,8 +155,7 @@ def main(page: ft.Page):
         ft.Row([feedback_btn], alignment=ft.MainAxisAlignment.CENTER)
     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
-    # ---------------------------- 
-      
+    # ----------------------------
 
     footer = ft.Text("تم التحليل بواسطة خوارزميات Amine", size=12, italic=True, color="grey500")
     
