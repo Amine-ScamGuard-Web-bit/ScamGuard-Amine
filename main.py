@@ -10,10 +10,9 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-# 🔥 الرادار الذكي: البحث التلقائي عن الموديل الشغال لمفتاحك
-best_model_name = "gemini-1.5-flash" # اسم افتراضي
+# 🔥 الرادار الذكي لاختيار الموديل
+best_model_name = "gemini-1.5-flash"
 try:
-    # جلب قائمة بكل الموديلات المتاحة لحسابك واختيار أول واحد يدعم النصوص
     available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
     if available_models:
         best_model_name = available_models[0] 
@@ -38,9 +37,10 @@ def main(page: ft.Page):
             page.update()
             return
 
-        pb.visible = True
+        # 1️⃣ [تحديث الواجهة] إظهار دائرة التحميل وتعطيل الزر مؤقتاً
+        btn.disabled = True
+        loading_row.visible = True
         res_card.visible = False
-        res_txt.value = "" # تفريغ النص القديم
         page.update()
 
         prompt = f"""
@@ -58,31 +58,24 @@ def main(page: ft.Page):
 
         try:
             response = model.generate_content(prompt)
-
-            # ✅ التعامل الآمن مع الرد
             result = getattr(response, "text", None)
 
             if not result:
                 result = "⚠️ لم يتم الحصول على رد واضح من النموذج"
-
             res_txt.value = result
 
         except Exception as err:
-            # سنطبع اسم الموديل الذي حاولنا استخدامه لنعرف ماذا حدث
-            res_txt.value = f"❌ خطأ تقني:\n{str(err)}\n(الموديل المستخدم: {best_model_name})"
+            res_txt.value = f"❌ خطأ تقني:\n{str(err)}"
 
-        pb.visible = False
+        # 2️⃣ [تحديث الواجهة] إخفاء التحميل وإظهار النتيجة وإعادة تفعيل الزر
+        loading_row.visible = False
+        btn.disabled = False
         res_card.visible = True
         page.update()
 
-    # 🎨 واجهة المستخدم
+    # 🎨 عناصر واجهة المستخدم
     logo = ft.Text("🛡️", size=80)
-    title = ft.Text(
-        "ScamGuard AI Pro",
-        size=32,
-        weight="bold",
-        color="blue400"
-    )
+    title = ft.Text("ScamGuard AI Pro", size=32, weight="bold", color="blue400")
 
     input_box = ft.TextField(
         label="📩 الصق نص الرسالة هنا للفحص",
@@ -100,47 +93,34 @@ def main(page: ft.Page):
         width=220
     )
 
-    pb = ft.ProgressBar(
-        visible=False,
-        color="cyan",
-        width=300
+    # 🔥 [الجديد] تصميم التحميل (دائرة متحركة + نص تفاعلي)
+    loading_row = ft.Row(
+        [
+            ft.ProgressRing(color="cyan", width=25, height=25, stroke_width=3),
+            ft.Text("جاري فحص الرسالة بالذكاء الاصطناعي... ⏳", size=16, color="cyan", italic=True)
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        visible=False  # مخفي في البداية
     )
 
     res_txt = ft.Text(size=16, selectable=True)
-
     res_card = ft.Card(
         visible=False,
         content=ft.Container(
             padding=20,
             content=ft.Column([
-                ft.Text(
-                    "📊 تقرير الأمان",
-                    size=20,
-                    weight="bold",
-                    color="cyan"
-                ),
+                ft.Text("📊 تقرير الأمان", size=20, weight="bold", color="cyan"),
                 res_txt,
             ])
         ),
         width=450
     )
 
-    footer = ft.Text(
-        "تم التحليل بواسطة خوارزميات Amine",
-        size=12,
-        italic=True,
-        color="grey500"
-    )
+    footer = ft.Text("تم التحليل بواسطة خوارزميات Amine", size=12, italic=True, color="grey500")
 
-    page.add(
-        logo,
-        title,
-        input_box,
-        btn,
-        pb,
-        res_card,
-        footer
-    )
+    # إضافة كل العناصر للصفحة (لاحظ أننا أضفنا loading_row تحت الزر)
+    page.add(logo, title, input_box, btn, loading_row, res_card, footer)
+
 
 # 🚀 تشغيل التطبيق على السيرفر (Render)
 if __name__ == "__main__":
