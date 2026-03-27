@@ -1,2 +1,2 @@
 flet
-google-genai
+google-generativeai
