@@ -10,8 +10,17 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-# 🔥 استخدام الموديل المستقر والمضمون 100% لتفادي خطأ 404
-model = genai.GenerativeModel("gemini-pro")
+# 🔥 الرادار الذكي: البحث التلقائي عن الموديل الشغال لمفتاحك
+best_model_name = "gemini-1.5-flash" # اسم افتراضي
+try:
+    # جلب قائمة بكل الموديلات المتاحة لحسابك واختيار أول واحد يدعم النصوص
+    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    if available_models:
+        best_model_name = available_models[0] 
+except Exception as e:
+    pass
+
+model = genai.GenerativeModel(best_model_name)
 
 def main(page: ft.Page):
     page.title = "ScamGuard AI Pro - By Amine"
@@ -31,6 +40,7 @@ def main(page: ft.Page):
 
         pb.visible = True
         res_card.visible = False
+        res_txt.value = "" # تفريغ النص القديم
         page.update()
 
         prompt = f"""
@@ -58,7 +68,8 @@ def main(page: ft.Page):
             res_txt.value = result
 
         except Exception as err:
-            res_txt.value = f"❌ خطأ تقني:\n{str(err)}"
+            # سنطبع اسم الموديل الذي حاولنا استخدامه لنعرف ماذا حدث
+            res_txt.value = f"❌ خطأ تقني:\n{str(err)}\n(الموديل المستخدم: {best_model_name})"
 
         pb.visible = False
         res_card.visible = True
@@ -131,7 +142,7 @@ def main(page: ft.Page):
         footer
     )
 
-# 🚀 تشغيل التطبيق على السيرفر (Render) بشكل صحيح
+# 🚀 تشغيل التطبيق على السيرفر (Render)
 if __name__ == "__main__":
     ft.app(target=main, view=None, port=int(os.getenv("PORT", 8080)), host="0.0.0.0")
     
