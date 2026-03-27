@@ -155,20 +155,22 @@ def main(page: ft.Page):
         ft.Text("📊 تقرير الأمان", size=20, weight="bold", color="cyan"), res_txt,
     ])), width=450)
 
-    # --- واجهة الميزات الجديدة ---
+            # --- واجهة الميزات الجديدة ---
     
-    # أزرار المشاركة
+    # أزرار المشاركة (تم إزالة الأيقونات البرمجية واستبدالها بإيموجي آمنة)
     share_title = ft.Text("📢 شارك الموقع مع أصدقائك لحمايتهم:", size=16, weight="bold", color="cyan")
     share_row = ft.Row([
-        ft.ElevatedButton("واتساب", icon=ft.icons.CHAT, color="green", on_click=lambda _: share_site("whatsapp")),
-        ft.ElevatedButton("فيسبوك", icon=ft.icons.FACEBOOK, color="blue", on_click=lambda _: share_site("facebook")),
-        ft.ElevatedButton("تليجرام", icon=ft.icons.SEND, color="cyan", on_click=lambda _: share_site("telegram")),
+        ft.ElevatedButton("واتساب 💬", color="green", on_click=lambda _: share_site("whatsapp")),
+        ft.ElevatedButton("فيسبوك 📘", color="blue", on_click=lambda _: share_site("facebook")),
+        ft.ElevatedButton("تليجرام ✈️", color="cyan", on_click=lambda _: share_site("telegram")),
     ], alignment=ft.MainAxisAlignment.CENTER)
 
     # حقل الملاحظات
     feedback_title = ft.Text("💡 هل لديك اقتراح أو واجهت مشكلة؟", size=16, weight="bold", color="blue300")
     feedback_input = ft.TextField(label="اكتب ملاحظتك هنا لتصل إلى المطور مباشرة...", multiline=True, min_lines=2, max_lines=4, border_radius=10, width=400)
-    feedback_btn = ft.ElevatedButton("إرسال الملاحظة", icon=ft.icons.SEND_AND_ARCHIVE, on_click=send_feedback)
+    
+    # زر إرسال آمن
+    feedback_btn = ft.ElevatedButton("إرسال الملاحظة 🚀", on_click=send_feedback)
 
     feedback_column = ft.Column([
         feedback_title,
