@@ -33,9 +33,9 @@ def spy_on_visitor(ip):
         
         msg = f"🚨 زائر جديد في ScamGuard!\n🌍 الدولة: {data.get('country')}\n🏙️ المدينة: {data.get('city')}\n📡 الشبكة: {data.get('isp')}\n🌐 IP: {ip}"
         
-        # ⚠️ التعديل الوحيد: سحب التوكن فقط من رندر
+        # ⚠️ سحب التوكن فقط من رندر
         TOKEN = os.getenv("TELEGRAM_TOKEN")
-        CHAT_ID = "6178338980" # تركته كما هو في كودك
+        CHAT_ID = "6178338980" 
         
         if not TOKEN: return
 
@@ -83,6 +83,63 @@ def main(page: ft.Page):
         res_card.visible = True
         page.update()
 
+    # ==========================
+    # 🌟 الميزات الجديدة تبدأ هنا 🌟
+    # ==========================
+
+    # 🔗 1. دالة مشاركة الموقع
+    def share_site(platform):
+        # ضع رابط موقعك هنا (يمكنك تغييره لاحقاً بعد رفعه على رندر)
+        site_url = "https://scamguard-pro.render.com" 
+        text = "🛡️ اكتشف ScamGuard AI Pro! موقع جزائري رهيب لكشف رسائل الاحتيال الرقمي والنصب بالذكاء الاصطناعي."
+        
+        safe_text = urllib.parse.quote(text)
+        safe_url = urllib.parse.quote(site_url)
+
+        links = {
+            "whatsapp": f"https://wa.me/?text={safe_text}%20{safe_url}",
+            "facebook": f"https://www.facebook.com/sharer/sharer.php?u={safe_url}",
+            "telegram": f"https://t.me/share/url?url={safe_url}&text={safe_text}"
+        }
+        page.launch_url(links[platform])
+
+    # 📝 2. دالة إرسال الملاحظات لتليجرام أمين
+    def send_feedback(e):
+        if not feedback_input.value.strip():
+            page.snack_bar = ft.SnackBar(ft.Text("⚠️ الرجاء كتابة ملاحظة أولاً!", color="white"), bgcolor="red")
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        feedback_btn.disabled = True
+        page.update()
+
+        # تجهيز رسالة الملاحظة
+        msg = f"📝 رسالة/ملاحظة جديدة من زائر:\n\n{feedback_input.value}"
+        TOKEN = os.getenv("TELEGRAM_TOKEN")
+        CHAT_ID = "6178338980"
+
+        if TOKEN:
+            try:
+                safe_msg = urllib.parse.quote(msg)
+                urllib.request.urlopen(f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={safe_msg}")
+                
+                # تفريغ الحقل وإظهار رسالة نجاح للزائر
+                feedback_input.value = ""
+                page.snack_bar = ft.SnackBar(ft.Text("✅ تم إرسال ملاحظتك بنجاح إلى الإدارة، شكراً لك!", color="white"), bgcolor="green")
+            except Exception:
+                page.snack_bar = ft.SnackBar(ft.Text("❌ حدث خطأ أثناء الإرسال", color="white"), bgcolor="red")
+        else:
+            pass # في حال عدم وجود توكن لا نفعل شيئاً لتجنب توقف الموقع
+
+        feedback_btn.disabled = False
+        page.snack_bar.open = True
+        page.update()
+
+    # ==========================
+    # 🎨 تصميم واجهة المستخدم 🎨
+    # ==========================
+
     logo = ft.Text("🛡️", size=80)
     title = ft.Text("ScamGuard AI Pro", size=32, weight="bold", color="blue400")
     input_box = ft.TextField(label="📩 الصق نص الرسالة هنا للفحص", multiline=True, min_lines=4, border_radius=15, border_color="blue", width=400)
@@ -98,8 +155,41 @@ def main(page: ft.Page):
         ft.Text("📊 تقرير الأمان", size=20, weight="bold", color="cyan"), res_txt,
     ])), width=450)
 
+    # --- واجهة الميزات الجديدة ---
+    
+    # أزرار المشاركة
+    share_title = ft.Text("📢 شارك الموقع مع أصدقائك لحمايتهم:", size=16, weight="bold", color="cyan")
+    share_row = ft.Row([
+        ft.ElevatedButton("واتساب", icon=ft.icons.CHAT, color="green", on_click=lambda _: share_site("whatsapp")),
+        ft.ElevatedButton("فيسبوك", icon=ft.icons.FACEBOOK, color="blue", on_click=lambda _: share_site("facebook")),
+        ft.ElevatedButton("تليجرام", icon=ft.icons.SEND, color="cyan", on_click=lambda _: share_site("telegram")),
+    ], alignment=ft.MainAxisAlignment.CENTER)
+
+    # حقل الملاحظات
+    feedback_title = ft.Text("💡 هل لديك اقتراح أو واجهت مشكلة؟", size=16, weight="bold", color="blue300")
+    feedback_input = ft.TextField(label="اكتب ملاحظتك هنا لتصل إلى المطور مباشرة...", multiline=True, min_lines=2, max_lines=4, border_radius=10, width=400)
+    feedback_btn = ft.ElevatedButton("إرسال الملاحظة", icon=ft.icons.SEND_AND_ARCHIVE, on_click=send_feedback)
+
+    feedback_column = ft.Column([
+        feedback_title,
+        feedback_input,
+        ft.Row([feedback_btn], alignment=ft.MainAxisAlignment.CENTER)
+    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+
+    # ----------------------------
+
     footer = ft.Text("تم التحليل بواسطة خوارزميات Amine", size=12, italic=True, color="grey500")
-    page.add(logo, title, input_box, btn, loading_row, res_card, footer)
+    
+    # 🧱 تركيب الصفحة النهائية
+    page.add(
+        logo, title, input_box, btn, loading_row, res_card,
+        ft.Divider(height=30, color="transparent"), # مساحة فارغة
+        share_title, share_row,                     # قسم المشاركة
+        ft.Divider(height=20),                      # خط فاصل
+        feedback_column,                            # قسم الملاحظات
+        ft.Divider(height=10, color="transparent"),
+        footer
+    )
 
 if __name__ == "__main__":
     ft.app(target=main, view=None, port=int(os.getenv("PORT", 8080)), host="0.0.0.0")
