@@ -1,2 +1,2 @@
-flet
-google-generativeai
+flet==0.21.0
+google-generativeai==0.5.2
