@@ -84,26 +84,22 @@ def main(page: ft.Page):
         page.update()
 
     # ==========================
+        # ==========================
     # 🌟 الميزات الجديدة تبدأ هنا 🌟
     # ==========================
 
-    # 🔗 1. دالة مشاركة الموقع
-    def share_site(platform):
-        # ضع رابط موقعك هنا (يمكنك تغييره لاحقاً بعد رفعه على رندر)
-        site_url = "https://scamguard-pro.render.com" 
-        text = "🛡️ اكتشف ScamGuard AI Pro! موقع جزائري رهيب لكشف رسائل الاحتيال الرقمي والنصب بالذكاء الاصطناعي."
-        
-        safe_text = urllib.parse.quote(text)
-        safe_url = urllib.parse.quote(site_url)
+    # 🔗 1. روابط المشاركة المباشرة والحقيقية (بديلة لدالة share_site)
+    site_url = "https://scamguard-pro.render.com" 
+    share_text = "🛡️ اكتشف ScamGuard AI Pro! موقع جزائري رهيب لكشف رسائل الاحتيال الرقمي والنصب بالذكاء الاصطناعي."
+    
+    safe_text = urllib.parse.quote(share_text)
+    safe_url = urllib.parse.quote(site_url)
 
-        links = {
-            "whatsapp": f"https://wa.me/?text={safe_text}%20{safe_url}",
-            "facebook": f"https://www.facebook.com/sharer/sharer.php?u={safe_url}",
-            "telegram": f"https://t.me/share/url?url={safe_url}&text={safe_text}"
-        }
-        page.launch_url(links[platform])
+    whatsapp_url = f"https://wa.me/?text={safe_text}%20{safe_url}"
+    facebook_url = f"https://www.facebook.com/sharer/sharer.php?u={safe_url}"
+    telegram_url = f"https://t.me/share/url?url={safe_url}&text={safe_text}"
 
-    # 📝 2. دالة إرسال الملاحظات لتليجرام أمين
+    # 📝 2. دالة إرسال الملاحظات لتليجرام أمين (لم نلمسها، تعمل بنجاح 100%)
     def send_feedback(e):
         if not feedback_input.value.strip():
             page.snack_bar = ft.SnackBar(ft.Text("⚠️ الرجاء كتابة ملاحظة أولاً!", color="white"), bgcolor="red")
@@ -136,41 +132,20 @@ def main(page: ft.Page):
         page.snack_bar.open = True
         page.update()
 
-    # ==========================
-    # 🎨 تصميم واجهة المستخدم 🎨
-    # ==========================
-
-    logo = ft.Text("🛡️", size=80)
-    title = ft.Text("ScamGuard AI Pro", size=32, weight="bold", color="blue400")
-    input_box = ft.TextField(label="📩 الصق نص الرسالة هنا للفحص", multiline=True, min_lines=4, border_radius=15, border_color="blue", width=400)
-    btn = ft.ElevatedButton("🚀 بدء الفحص الذكي", on_click=check_scam, height=50, width=220)
+    # --- واجهة الميزات الجديدة ---
     
-    loading_row = ft.Row([
-        ft.ProgressRing(color="cyan", width=25, height=25, stroke_width=3),
-        ft.Text("جاري فحص الرسالة بالذكاء الاصطناعي... ⏳", size=16, color="cyan", italic=True)
-    ], alignment=ft.MainAxisAlignment.CENTER, visible=False)
-
-    res_txt = ft.Text(size=16, selectable=True)
-    res_card = ft.Card(visible=False, content=ft.Container(padding=20, content=ft.Column([
-        ft.Text("📊 تقرير الأمان", size=20, weight="bold", color="cyan"), res_txt,
-    ])), width=450)
-
-            # --- واجهة الميزات الجديدة ---
-    
-    # أزرار المشاركة (تم إزالة الأيقونات البرمجية واستبدالها بإيموجي آمنة)
+    # أزرار المشاركة (تم إصلاحها: روابط حقيقية + إيموجي + wrap=True لكي لا يختفي زر واتساب)
     share_title = ft.Text("📢 شارك الموقع مع أصدقائك لحمايتهم:", size=16, weight="bold", color="cyan")
     share_row = ft.Row([
-        ft.ElevatedButton("واتساب 💬", color="green", on_click=lambda _: share_site("whatsapp")),
-        ft.ElevatedButton("فيسبوك 📘", color="blue", on_click=lambda _: share_site("facebook")),
-        ft.ElevatedButton("تليجرام ✈️", color="cyan", on_click=lambda _: share_site("telegram")),
-    ], alignment=ft.MainAxisAlignment.CENTER)
+        ft.ElevatedButton("واتساب 💬", color="green", url=whatsapp_url),
+        ft.ElevatedButton("فيسبوك 📘", color="blue", url=facebook_url),
+        ft.ElevatedButton("تليجرام ✈️", color="cyan", url=telegram_url),
+    ], alignment=ft.MainAxisAlignment.CENTER, wrap=True)
 
-    # حقل الملاحظات
+    # حقل الملاحظات (كما هو بدون تغيير)
     feedback_title = ft.Text("💡 هل لديك اقتراح أو واجهت مشكلة؟", size=16, weight="bold", color="blue300")
     feedback_input = ft.TextField(label="اكتب ملاحظتك هنا لتصل إلى المطور مباشرة...", multiline=True, min_lines=2, max_lines=4, border_radius=10, width=400)
-    
-    # زر إرسال آمن
-    feedback_btn = ft.ElevatedButton("إرسال الملاحظة 🚀", on_click=send_feedback)
+    feedback_btn = ft.ElevatedButton("إرسال الملاحظة", icon=ft.icons.SEND_AND_ARCHIVE, on_click=send_feedback)
 
     feedback_column = ft.Column([
         feedback_title,
@@ -178,7 +153,8 @@ def main(page: ft.Page):
         ft.Row([feedback_btn], alignment=ft.MainAxisAlignment.CENTER)
     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
-    # ----------------------------
+    # ---------------------------- 
+      
 
     footer = ft.Text("تم التحليل بواسطة خوارزميات Amine", size=12, italic=True, color="grey500")
     
