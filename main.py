@@ -147,7 +147,7 @@ def main(page: ft.Page):
         ft.Row([feedback_btn], alignment=ft.MainAxisAlignment.CENTER)
     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
-        footer = ft.Text("© 2026 تم التطوير بواسطة خوارزميات Amine", size=12, italic=True, color="grey500")
+    footer = ft.Text("© 2026 تم التطوير بواسطة خوارزميات Amine", size=12, italic=True, color="grey500")
 
     
     page.add(
