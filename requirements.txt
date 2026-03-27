@@ -1,1 +1,2 @@
-model = genai.GenerativeModel("gemini-pro")
+flet
+google-genai
