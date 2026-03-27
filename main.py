@@ -21,29 +21,55 @@ try:
 except: pass
 model = genai.GenerativeModel(best_model_name)
 
-# 🕵️‍♂️ دالة التجسس الصامتة (إرسال الإشعارات إلى تليجرام أمين)
-def spy_on_visitor(ip):
+# 🕵️‍♂️ دالة التجسس الصامتة (إرسال الإشعارات وكشف الـ VPN)
+def spy_on_visitor(ip, page):
     try:
         if not ip or ip == "127.0.0.1": return
-        res = urllib.request.urlopen(f"http://ip-api.com/json/{ip}")
+        
+        # 1. جلب معلومات الـ IP مع فحص البروكسي والـ VPN
+        url = f"http://ip-api.com/json/{ip}?fields=country,city,isp,query,proxy,hosting"
+        res = urllib.request.urlopen(url)
         data = json.loads(res.read().decode())
         
-        msg = f"🚨 زائر جديد في ScamGuard!\n🌍 الدولة: {data.get('country')}\n🏙️ المدينة: {data.get('city')}\n📡 الشبكة: {data.get('isp')}\n🌐 IP: {ip}"
+        # 2. تحليل هل هو VPN أم اتصال طبيعي؟
+        is_vpn = data.get("proxy", False) or data.get("hosting", False)
+        vpn_status_msg = "⚠️ نعم (يستخدم VPN أو Proxy)" if is_vpn else "✅ لا (اتصال حقيقي)"
+        
+        # 3. إرسال التقرير المفصل إلى تليجرام أمين
+        msg = f"🚨 زائر جديد في ScamGuard!\n🌍 الدولة: {data.get('country')}\n🏙️ المدينة: {data.get('city')}\n📡 الشبكة: {data.get('isp')}\n🕵️‍♂️ يستخدم VPN: {vpn_status_msg}\n🌐 IP الظاهر: {ip}"
         
         TOKEN = os.getenv("TELEGRAM_TOKEN")
         CHAT_ID = "6178338980" 
         
-        if not TOKEN: return
-
-        safe_msg = urllib.parse.quote(msg)
-        urllib.request.urlopen(f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={safe_msg}")
-    except:
+        if TOKEN:
+            safe_msg = urllib.parse.quote(msg)
+            urllib.request.urlopen(f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={safe_msg}")
+            
+        # 4. رسالة هادئة واحترافية للزائر
+        if is_vpn:
+            visitor_msg = f"🕵️‍♂️ اكتشف النظام أنك تتخفى عن طريق استخدام VPN (الأي بي الظاهر: {ip})"
+            bg_color = "orange800"
+        else:
+            visitor_msg = f"🌐 الأي بي الخاص بك هو: {ip} ({data.get('country')})"
+            bg_color = "blue700"
+            
+        page.snack_bar = ft.SnackBar(
+            ft.Text(visitor_msg, color="white", weight="bold"), 
+            bgcolor=bg_color,
+            duration=6000 
+        )
+        page.snack_bar.open = True
+        page.update()
+            
+    except Exception:
         pass 
 
 def main(page: ft.Page):
-    threading.Thread(target=spy_on_visitor, args=(page.client_ip,)).start()
+    # 🎯 اصطياد الزائر وتمرير الصفحة لدالة التجسس لكي تصارحه
+    threading.Thread(target=spy_on_visitor, args=(page.client_ip, page)).start()
 
     page.title = "ScamGuard AI Pro - By Amine"
+
     page.theme_mode = ft.ThemeMode.DARK
     page.rtl = True
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
